@@ -22,8 +22,6 @@ import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.management.openmbean.CompositeData;
-
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.scope.IScope;
 import org.slf4j.Logger;
@@ -97,7 +95,8 @@ public final class Red5 {
     /**
      * Detection of debug mode
      */
-    private static boolean debug = java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments().toString().indexOf("jdwp") >= 0;
+//    private static boolean debug = java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments().toString().indexOf("jdwp") >= 0;
+    private static boolean debug = "YES".equals(System.getProperty("RED5DEBUG", "NO"));
 
     /**
      * Create a new Red5 object using given connection.
@@ -247,19 +246,19 @@ public final class Red5 {
      *            composite data
      * @return Red5 class instance
      */
-    public static Red5 from(CompositeData cd) {
-        Red5 instance = null;
-        if (cd.containsKey("connection")) {
-            Object cn = cd.get("connection");
-            if (cn != null && cn instanceof IConnection) {
-                instance = new Red5((IConnection) cn);
-            } else {
-                instance = new Red5();
-            }
-        } else {
-            instance = new Red5();
-        }
-        return instance;
-    }
+//    public static Red5 from(CompositeData cd) {
+//        Red5 instance = null;
+//        if (cd.containsKey("connection")) {
+//            Object cn = cd.get("connection");
+//            if (cn != null && cn instanceof IConnection) {
+//                instance = new Red5((IConnection) cn);
+//            } else {
+//                instance = new Red5();
+//            }
+//        } else {
+//            instance = new Red5();
+//        }
+//        return instance;
+//    }
 
 }

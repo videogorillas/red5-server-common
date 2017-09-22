@@ -38,7 +38,6 @@ import javax.crypto.spec.DHParameterSpec;
 import javax.crypto.spec.DHPublicKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.apache.commons.codec.binary.Hex;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.bouncycastle.crypto.engines.BlowfishEngine;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -48,6 +47,8 @@ import org.red5.server.net.IHandshake;
 import org.red5.server.net.rtmp.message.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import android.org.apache.commons.codec.binary.Hex;
 
 /**
  * Generates and validates the RTMP handshake response for Flash Players. Client versions equal to or greater than Flash 9,0,124,0 require

@@ -3,7 +3,7 @@
     <parent>
         <groupId>org.red5</groupId>
         <artifactId>red5-parent</artifactId>
-        <version>1.0.10-M4</version>
+        <version>1.0.10-M4.android</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>red5-server-common</artifactId>
@@ -57,6 +57,10 @@
         </developer>
     </developers>
     <repositories>
+        <repository>
+            <id>android</id>
+            <url>file://${project.basedir}</url>
+        </repository>
         <repository>
             <id>sonatype-snapshots</id>
             <name>Sonatype Snapshots</name>
@@ -202,8 +206,8 @@
             <version>${commons-beanutils.version}</version>
         </dependency>
         <dependency>
+            <groupId>android</groupId>
             <artifactId>commons-codec</artifactId>
-            <groupId>commons-codec</groupId>
             <version>${commons-codec.version}</version>
         </dependency>
         <dependency>
