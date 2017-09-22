@@ -19,7 +19,7 @@
 package org.red5.server.net.rtmp;
 
 import java.beans.ConstructorProperties;
-import java.lang.management.ManagementFactory;
+//import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
@@ -28,9 +28,9 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
-import javax.management.StandardMBean;
+//import javax.management.MBeanServer;
+//import javax.management.ObjectName;
+//import javax.management.StandardMBean;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.future.CloseFuture;
@@ -38,7 +38,7 @@ import org.apache.mina.core.future.IoFutureListener;
 import org.apache.mina.core.session.IoSession;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.scope.IScope;
-import org.red5.server.jmx.mxbeans.RTMPMinaConnectionMXBean;
+//import org.red5.server.jmx.mxbeans.RTMPMinaConnectionMXBean;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.event.ClientBW;
 import org.red5.server.net.rtmp.event.ServerBW;
@@ -56,7 +56,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * @author Paul Gregoire
  */
 @ManagedResource
-public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnectionMXBean {
+//public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnectionMXBean {
+public class RTMPMinaConnection extends RTMPConnection {
 
     protected static Logger log = LoggerFactory.getLogger(RTMPMinaConnection.class);
 
@@ -73,7 +74,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
     /**
      * MBean object name used for de/registration purposes.
      */
-    private ObjectName oName;
+//    private ObjectName oName;
 
     protected int defaultServerBandwidth = 10000000;
 
@@ -107,7 +108,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
             } else {
                 log.warn("Client was null");
             }
-            registerJMX();
+//            registerJMX();
         } else {
             log.debug("Connect failed");
         }
@@ -147,7 +148,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
                 handler.connectionClosed(this);
             }
             // de-register with JMX
-            unregisterJMX();
+//            unregisterJMX();
         } else if (log.isDebugEnabled()) {
             log.debug("Close has already been called");
         }
@@ -404,43 +405,43 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
         }
     }
 
-    protected void registerJMX() {
-        // register with jmx
-        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-        try {
-            String cName = this.getClass().getName();
-            if (cName.indexOf('.') != -1) {
-                cName = cName.substring(cName.lastIndexOf('.')).replaceFirst("[\\.]", "");
-            }
-            String hostStr = host;
-            int port = 1935;
-            if (host != null && host.indexOf(":") > -1) {
-                String[] arr = host.split(":");
-                hostStr = arr[0];
-                port = Integer.parseInt(arr[1]);
-            }
-            // Create a new mbean for this instance
-            oName = new ObjectName(String.format("org.red5.server:type=%s,connectionType=%s,host=%s,port=%d,clientId=%s", cName, type, hostStr, port, client.getId()));
-            if (!mbs.isRegistered(oName)) {
-                mbs.registerMBean(new StandardMBean(this, RTMPMinaConnectionMXBean.class, true), oName);
-            } else {
-                log.debug("Connection is already registered in JMX");
-            }
-        } catch (Exception e) {
-            log.warn("Error on jmx registration", e);
-        }
-    }
+//    protected void registerJMX() {
+//        // register with jmx
+//        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+//        try {
+//            String cName = this.getClass().getName();
+//            if (cName.indexOf('.') != -1) {
+//                cName = cName.substring(cName.lastIndexOf('.')).replaceFirst("[\\.]", "");
+//            }
+//            String hostStr = host;
+//            int port = 1935;
+//            if (host != null && host.indexOf(":") > -1) {
+//                String[] arr = host.split(":");
+//                hostStr = arr[0];
+//                port = Integer.parseInt(arr[1]);
+//            }
+//            // Create a new mbean for this instance
+//            oName = new ObjectName(String.format("org.red5.server:type=%s,connectionType=%s,host=%s,port=%d,clientId=%s", cName, type, hostStr, port, client.getId()));
+//            if (!mbs.isRegistered(oName)) {
+//                mbs.registerMBean(new StandardMBean(this, RTMPMinaConnectionMXBean.class, true), oName);
+//            } else {
+//                log.debug("Connection is already registered in JMX");
+//            }
+//        } catch (Exception e) {
+//            log.warn("Error on jmx registration", e);
+//        }
+//    }
 
-    protected void unregisterJMX() {
-        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-        if (oName != null && mbs.isRegistered(oName)) {
-            try {
-                mbs.unregisterMBean(oName);
-            } catch (Exception e) {
-                log.warn("Exception unregistering: {}", oName, e);
-            }
-            oName = null;
-        }
-    }
+//    protected void unregisterJMX() {
+//        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+//        if (oName != null && mbs.isRegistered(oName)) {
+//            try {
+//                mbs.unregisterMBean(oName);
+//            } catch (Exception e) {
+//                log.warn("Exception unregistering: {}", oName, e);
+//            }
+//            oName = null;
+//        }
+//    }
 
 }
