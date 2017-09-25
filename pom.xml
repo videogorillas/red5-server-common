@@ -206,11 +206,6 @@
             <version>${commons-beanutils.version}</version>
         </dependency>
         <dependency>
-            <groupId>android</groupId>
-            <artifactId>commons-codec</artifactId>
-            <version>${commons-codec.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.quartz-scheduler</groupId>
             <artifactId>quartz</artifactId>
             <version>${quartz.version}</version>
