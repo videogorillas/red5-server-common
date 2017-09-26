@@ -189,6 +189,9 @@ public class RemotingClient implements IRemotingClient {
      *            Byte buffer with response data
      */
     protected void processHeaders(IoBuffer in) {
+        if (in == null) {
+            throw new IllegalArgumentException("processHeaders in == null");
+        }
         log.debug("RemotingClient processHeaders - buffer limit: {}", (in != null ? in.limit() : 0));
         int version = in.getUnsignedShort(); // skip
         log.debug("Version: {}", version);
@@ -220,7 +223,8 @@ public class RemotingClient implements IRemotingClient {
                 if (value instanceof Map<?, ?>) {
                     @SuppressWarnings("unchecked")
                     Map<String, Object> valueMap = (Map<String, Object>) value;
-                    RemotingHeader header = new RemotingHeader((String) valueMap.get("name"), (Boolean) valueMap.get("mustUnderstand"), valueMap.get("data"));
+                    RemotingHeader header = new RemotingHeader((String) valueMap.get("name"),
+                            (Boolean) valueMap.get("mustUnderstand"), valueMap.get("data"));
                     headers.put(header.name, header);
                 } else {
                     log.error("Expected Map but received {}", value);
@@ -239,6 +243,9 @@ public class RemotingClient implements IRemotingClient {
      * @return Object deserialized from byte buffer data
      */
     private Object decodeResult(IoBuffer data) {
+        if (data == null) {
+            throw new IllegalArgumentException("decodeResult data == null");
+        }
         log.debug("decodeResult - data limit: {}", (data != null ? data.limit() : 0));
         processHeaders(data);
         int count = data.getUnsignedShort();
@@ -349,7 +356,9 @@ public class RemotingClient implements IRemotingClient {
             }
         } catch (Exception ex) {
             log.error("Error while invoking remoting method: {}", method, ex);
-            post.abort();
+            if (post != null) {
+                post.abort();
+            }
         } finally {
             if (resultBuffer != null) {
                 resultBuffer.free();

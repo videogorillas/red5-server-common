@@ -492,7 +492,7 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
             }
         }
         // expect every value to have been added
-        return (successes == values.size());
+        return (values != null && successes == values.size());
     }
 
     /** {@inheritDoc} */
