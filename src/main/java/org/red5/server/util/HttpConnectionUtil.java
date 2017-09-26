@@ -18,21 +18,25 @@
 
 package org.red5.server.util;
 
-import java.io.IOException;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.ParseException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.util.EntityUtils;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.Proxy.Type;
+import java.util.concurrent.TimeUnit;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLSession;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import okhttp3.ConnectionPool;
+import okhttp3.OkHttpClient;
+import okhttp3.OkHttpClient.Builder;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 /**
  * Utility for using HTTP connections.
@@ -46,7 +50,7 @@ public class HttpConnectionUtil {
 
     private static final String userAgent = "Mozilla/4.0 (compatible; Red5 Server)";
 
-    private static PoolingHttpClientConnectionManager connectionManager;
+    private static ConnectionPool connectionManager;
 
     private static int connectionTimeout = 7000;
 
@@ -54,8 +58,7 @@ public class HttpConnectionUtil {
         // Create an HttpClient with the PoolingHttpClientConnectionManager.
         // This connection manager must be used if more than one thread will
         // be using the HttpClient.
-        connectionManager = new PoolingHttpClientConnectionManager();
-        connectionManager.setMaxTotal(40);
+        connectionManager = new ConnectionPool(40, 5, TimeUnit.MINUTES);
     }
 
     /**
@@ -63,7 +66,7 @@ public class HttpConnectionUtil {
      * 
      * @return client
      */
-    public static final HttpClient getClient() {
+    public static final OkHttpClient getClient() {
         return getClient(connectionTimeout);
     }
 
@@ -74,23 +77,22 @@ public class HttpConnectionUtil {
      *            - socket timeout to set
      * @return client
      */
-    public static final HttpClient getClient(int timeout) {
-        HttpClientBuilder client = HttpClientBuilder.create();
+    public static final OkHttpClient getClient(int timeout) {
+        Builder client = new OkHttpClient.Builder();
         // set the connection manager
-        client.setConnectionManager(connectionManager);
+        client.connectionPool(connectionManager);
         // dont retry
-        client.setRetryHandler(new DefaultHttpRequestRetryHandler(0, false));
+//        client.setRetryHandler(new DefaultHttpRequestRetryHandler(0, false));
         // establish a connection within x seconds
-        RequestConfig config = RequestConfig.custom().setSocketTimeout(timeout).build();
-        client.setDefaultRequestConfig(config);
+        client.connectTimeout(timeout, MILLISECONDS).readTimeout(timeout, MILLISECONDS).writeTimeout(timeout, MILLISECONDS);
         // no redirects
-        client.disableRedirectHandling();
+        client.followRedirects(false);
         // set custom ua
-        client.setUserAgent(userAgent);
+//        client.setUserAgent(userAgent);
+        
         // set the proxy if the user has one set
         if ((System.getProperty("http.proxyHost") != null) && (System.getProperty("http.proxyPort") != null)) {
-            HttpHost proxy = new HttpHost(System.getProperty("http.proxyHost").toString(), Integer.valueOf(System.getProperty("http.proxyPort")));
-            client.setProxy(proxy);
+            client.proxy(new Proxy(Type.HTTP, InetSocketAddress.createUnresolved(System.getProperty("http.proxyHost"), Integer.parseInt(System.getProperty("http.proxyPort")))));
         }
         return client.build();
     }
@@ -100,21 +102,25 @@ public class HttpConnectionUtil {
      * 
      * @return client
      */
-    public static final HttpClient getSecureClient() {
-        HttpClientBuilder client = HttpClientBuilder.create();
+    public static final OkHttpClient getSecureClient() {
+        OkHttpClient.Builder client = new OkHttpClient.Builder();
         // set the ssl verifier to accept all
-        client.setSSLHostnameVerifier(new NoopHostnameVerifier());
+        client.hostnameVerifier(new HostnameVerifier() {
+            @Override
+            public boolean verify(String x, SSLSession y) {
+                return true;
+            }
+        });
         // set the connection manager
-        client.setConnectionManager(connectionManager);
+        client.connectionPool(connectionManager);
         // dont retry
-        client.setRetryHandler(new DefaultHttpRequestRetryHandler(0, false));
+//        client.setRetryHandler(new DefaultHttpRequestRetryHandler(0, false));
         // establish a connection within x seconds
-        RequestConfig config = RequestConfig.custom().setSocketTimeout(connectionTimeout).build();
-        client.setDefaultRequestConfig(config);
+        client.connectTimeout(connectionTimeout, MILLISECONDS).readTimeout(connectionTimeout, MILLISECONDS).writeTimeout(connectionTimeout, MILLISECONDS);
         // no redirects
-        client.disableRedirectHandling();
+        client.followRedirects(false);
         // set custom ua
-        client.setUserAgent(userAgent);
+//        client.setUserAgent(userAgent);
         return client.build();
     }
 
@@ -128,11 +134,12 @@ public class HttpConnectionUtil {
      * @throws ParseException
      *             on parse error
      */
-    public static void handleError(HttpResponse response) throws ParseException, IOException {
-        log.debug("{}", response.getStatusLine().toString());
-        HttpEntity entity = response.getEntity();
+    public static void handleError(Response response) throws IOException {
+        log.debug("{} {}", response.code(), response.message());
+        ResponseBody entity = response.body();
         if (entity != null) {
-            log.debug("{}", EntityUtils.toString(entity));
+            log.debug("{}", entity.string());
+            entity.close();
         }
     }
 

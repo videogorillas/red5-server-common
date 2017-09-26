@@ -101,11 +101,13 @@ public class ReflectionUtils {
             method = methods.get(i);
             boolean valid = true;
             Class<?>[] paramTypes = method.getParameterTypes();
+            if (args != null) {
             for (int j = 0; j < args.length; j++) {
                 if ((args[j] == null && paramTypes[j].isPrimitive()) || (args[j] != null && !args[j].getClass().equals(paramTypes[j]))) {
                     valid = false;
                     break;
                 }
+            }
             }
             if (valid) {
                 return new Object[] { method, args };
@@ -116,7 +118,7 @@ public class ReflectionUtils {
             try {
                 method = methods.get(i);
                 params = ConversionUtils.convertParams(args, method.getParameterTypes());
-                if (args.length > 0 && (args[0] instanceof IConnection) && (!(params[0] instanceof IConnection))) {
+                if (args != null && args.length > 0 && (args[0] instanceof IConnection) && (!(params[0] instanceof IConnection))) {
                     // don't convert first IConnection parameter
                     continue;
                 }

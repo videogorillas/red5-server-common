@@ -25,12 +25,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.util.EntityUtils;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.amf.Input;
 import org.red5.io.amf.Output;
@@ -41,6 +35,15 @@ import org.red5.io.object.Serializer;
 import org.red5.server.util.HttpConnectionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import okhttp3.Call;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
+import okio.ByteString;
 
 /**
  * Client interface for remoting calls.
@@ -58,9 +61,10 @@ public class RemotingClient implements IRemotingClient {
 
     /** Content MIME type for HTTP requests. */
     protected static final String CONTENT_TYPE = "application/x-amf";
+    protected static final MediaType ContentType = MediaType.parse(CONTENT_TYPE);
 
     /** HTTP client for remoting calls. */
-    protected HttpClient client;
+    protected OkHttpClient client;
 
     /** Url to connect to. */
     protected String url;
@@ -189,6 +193,9 @@ public class RemotingClient implements IRemotingClient {
      *            Byte buffer with response data
      */
     protected void processHeaders(IoBuffer in) {
+        if (in == null) {
+            throw new IllegalArgumentException("processHeaders in == null");
+        }
         log.debug("RemotingClient processHeaders - buffer limit: {}", (in != null ? in.limit() : 0));
         int version = in.getUnsignedShort(); // skip
         log.debug("Version: {}", version);
@@ -220,7 +227,8 @@ public class RemotingClient implements IRemotingClient {
                 if (value instanceof Map<?, ?>) {
                     @SuppressWarnings("unchecked")
                     Map<String, Object> valueMap = (Map<String, Object>) value;
-                    RemotingHeader header = new RemotingHeader((String) valueMap.get("name"), (Boolean) valueMap.get("mustUnderstand"), valueMap.get("data"));
+                    RemotingHeader header = new RemotingHeader((String) valueMap.get("name"),
+                            (Boolean) valueMap.get("mustUnderstand"), valueMap.get("data"));
                     headers.put(header.name, header);
                 } else {
                     log.error("Expected Map but received {}", value);
@@ -239,6 +247,9 @@ public class RemotingClient implements IRemotingClient {
      * @return Object deserialized from byte buffer data
      */
     private Object decodeResult(IoBuffer data) {
+        if (data == null) {
+            throw new IllegalArgumentException("decodeResult data == null");
+        }
         log.debug("decodeResult - data limit: {}", (data != null ? data.limit() : 0));
         processHeaders(data);
         int count = data.getUnsignedShort();
@@ -316,28 +327,27 @@ public class RemotingClient implements IRemotingClient {
         IoBuffer resultBuffer = null;
         IoBuffer data = encodeInvoke(method, params);
         //setup POST
-        HttpPost post = null;
+        Call post = null;
         try {
-            post = new HttpPost(url + appendToUrl);
-            post.addHeader("Content-Type", CONTENT_TYPE);
-            post.setEntity(new InputStreamEntity(data.asInputStream(), data.limit()));
+            Request _post = new Request.Builder().url(url + appendToUrl).post(RequestBody.create(ContentType, ByteString.read(data.asInputStream(), data.limit()))).build();
             // execute the method
-            HttpResponse response = client.execute(post);
-            int code = response.getStatusLine().getStatusCode();
+            post = client.newCall(_post);
+            Response response = post.execute();
+            int code = response.code();
             log.debug("HTTP response code: {}", code);
             if (code / 100 != 2) {
                 throw new RuntimeException("Didn't receive success from remoting server");
             } else {
-                HttpEntity entity = response.getEntity();
+                ResponseBody entity = response.body();
                 if (entity != null) {
                     //fix for Trac #676
-                    int contentLength = (int) entity.getContentLength();
+                    int contentLength = (int) entity.contentLength();
                     //default the content length to 16 if post doesn't contain a good value
                     if (contentLength < 1) {
                         contentLength = 16;
                     }
                     // get the response as bytes
-                    byte[] bytes = EntityUtils.toByteArray(entity);
+                    byte[] bytes = entity.bytes();
                     resultBuffer = IoBuffer.wrap(bytes);
                     Object result = decodeResult(resultBuffer);
                     if (result instanceof RecordSet) {
@@ -349,7 +359,9 @@ public class RemotingClient implements IRemotingClient {
             }
         } catch (Exception ex) {
             log.error("Error while invoking remoting method: {}", method, ex);
-            post.abort();
+            if (post != null) {
+                post.cancel();
+            }
         } finally {
             if (resultBuffer != null) {
                 resultBuffer.free();

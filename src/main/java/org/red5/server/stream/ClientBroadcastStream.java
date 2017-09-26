@@ -290,7 +290,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
                         IAudioStreamCodec audioStreamCodec = null;
                         if (checkAudioCodec) {
                             // dont try to read codec info from 0 length audio packets
-                            if (buf.limit() > 0) {
+                            if (buf != null && buf.limit() > 0) {
                                 audioStreamCodec = AudioCodecFactory.getAudioCodec(buf);
                                 if (info != null) {
                                     info.setAudioCodec(audioStreamCodec);

@@ -298,7 +298,7 @@ public class ClientSharedObject extends SharedObject implements IClientSharedObj
             }
         }
         // expect every value to have been added
-        return (successes == values.size());
+        return (values != null && successes == values.size());
     }
 
     /** {@inheritDoc} */
