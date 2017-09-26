@@ -189,7 +189,7 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData<Vid
             // null out the data first so we don't accidentally
             // return a valid reference first
             data = null;
-            localData.clear();
+//            localData.clear();
             localData.free();
         }
     }
