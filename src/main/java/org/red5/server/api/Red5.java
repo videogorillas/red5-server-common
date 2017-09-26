@@ -124,12 +124,12 @@ public final class Red5 {
     public static void setConnectionLocal(IConnection connection) {
         if (log.isDebugEnabled()) {
             log.debug("Set connection: {} with thread: {}", (connection != null ? connection.getSessionId() : null), Thread.currentThread().getName());
-            try {
-                StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-                StackTraceElement stackTraceElement = stackTraceElements[2];
-                log.debug("Caller: {}.{} #{}", stackTraceElement.getClassName(), stackTraceElement.getMethodName(), stackTraceElement.getLineNumber());
-            } catch (Exception e) {
-            }
+//            try {
+//                StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+//                StackTraceElement stackTraceElement = stackTraceElements[2];
+//                log.debug("Caller: {}.{} #{}", stackTraceElement.getClassName(), stackTraceElement.getMethodName(), stackTraceElement.getLineNumber());
+//            } catch (Exception e) {
+//            }
         }
         if (connection != null) {
             connThreadLocal.set(new WeakReference<IConnection>(connection));
