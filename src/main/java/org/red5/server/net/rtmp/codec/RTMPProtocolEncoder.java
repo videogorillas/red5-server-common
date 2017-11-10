@@ -179,12 +179,18 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
                     // encode the header
                     encodeHeader(header, lastHeader, out);
                     // write a chunk
-                    byte[] buf = new byte[Math.min(chunkSize, data.remaining())];
-                    data.get(buf);
-                    //log.trace("Buffer: {}", Hex.encodeHexString(buf));
-                    out.put(buf);
+                    int transferSize = Math.min(chunkSize, data.remaining());
+                    int _limit = data.limit();
+                    int _pos = data.position();
+                    data.limit(_pos + transferSize);
+                    out.put(data);
+                    data.limit(_limit).position(_pos + transferSize);
                     // move header over to last header
-                    lastHeader = header.clone();
+                    if (lastHeader == null) {
+                        lastHeader = header.clone();
+                    } else {
+                        copyHeader(header, lastHeader);
+                    }
                 } while (data.hasRemaining());
                 // collapse the time stamps on the last header after decode is complete
                 lastHeader.setTimerBase(lastHeader.getTimer());
@@ -199,6 +205,17 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
         }
         message.release();
         return out;
+    }
+    
+    static Header copyHeader(Header src, Header dst) {
+        dst.setChannelId(src.getChannelId());
+        dst.setTimerBase(src.getTimerBase());
+        dst.setTimerDelta(src.getTimerDelta());
+        dst.setSize(src.getSize());
+        dst.setDataType(src.getDataType());
+        dst.setStreamId(src.getStreamId());
+        dst.setExtended(src.isExtended());
+        return dst;
     }
 
     /**
@@ -499,7 +516,9 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
             default:
                 break;
         }
-        log.trace("Encoded chunk {} {}", Header.HeaderType.values()[headerType], header);
+        if (log.isTraceEnabled()) {
+            log.trace("Encoded chunk {} {}", Header.HeaderType.values()[headerType], header);
+        }
     }
 
     /**
