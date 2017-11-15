@@ -77,14 +77,14 @@ public class HttpConnectionUtil {
      *            - socket timeout to set
      * @return client
      */
-    public static final OkHttpClient getClient(int timeout) {
+    public static final OkHttpClient getClient(long timeoutMsec) {
         Builder client = new OkHttpClient.Builder();
         // set the connection manager
         client.connectionPool(connectionManager);
         // dont retry
 //        client.setRetryHandler(new DefaultHttpRequestRetryHandler(0, false));
         // establish a connection within x seconds
-        client.connectTimeout(timeout, MILLISECONDS).readTimeout(timeout, MILLISECONDS).writeTimeout(timeout, MILLISECONDS);
+        client.connectTimeout(timeoutMsec, MILLISECONDS).readTimeout(timeoutMsec, MILLISECONDS).writeTimeout(timeoutMsec, MILLISECONDS);
         // no redirects
         client.followRedirects(false);
         // set custom ua

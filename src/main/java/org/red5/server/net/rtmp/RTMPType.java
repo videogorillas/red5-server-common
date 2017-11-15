@@ -35,6 +35,7 @@ public enum RTMPType {
     TYPE_CHUNK_SIZE(0x01), TYPE_ABORT(0x02), TYPE_BYTES_READ(0x03), TYPE_PING(0x04), TYPE_SERVER_BANDWIDTH(0x05), TYPE_CLIENT_BANDWIDTH(0x06), TYPE_EDGE_ORIGIN(0x07), TYPE_AUDIO_DATA(0x08), TYPE_VIDEO_DATA(0x09), TYPE_UNK1(0x0a), TYPE_UNK2(0x0b), TYPE_UNK3(0x0c), TYPE_UNK4(0x0d), TYPE_UNK5(0x0e), TYPE_FLEX_STREAM_SEND(0x0f), TYPE_FLEX_SHARED_OBJECT(0x10), TYPE_FLEX_MESSAGE(0x11), TYPE_NOTIFY(0x12), TYPE_SHARED_OBJECT(
             0x13), TYPE_INVOKE(0x14), TYPE_UNK6(0x15), TYPE_AGGREGATE(0x16), TYPE_UNK7(0x17), TYPE_UNK8(0x18);
 
+    private static final RTMPType[] VALUES = RTMPType.values();
     private final byte type;
 
     RTMPType(byte type) {
@@ -50,12 +51,11 @@ public enum RTMPType {
     }
 
     public static String valueOf(byte dataType) {
-        int idx = (int) dataType - 1;
-        if (idx < RTMPType.values().length) {
-            return RTMPType.values()[idx].name();
-        } else {
-            return "TYPE_UNKNOWN:" + dataType;
+        int idx = dataType - 1;
+        if (idx < VALUES.length) {
+            return VALUES[idx].name();
         }
+        return "TYPE_UNKNOWN:" + dataType;
     }
 
 }

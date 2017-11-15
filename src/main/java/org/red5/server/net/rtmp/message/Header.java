@@ -28,6 +28,8 @@ import java.io.ObjectOutput;
  */
 public class Header implements Constants, Cloneable, Externalizable {
 
+    private static final Double ZERO = 0.0d;
+
     private static final long serialVersionUID = 8982665579411495026L;
 
     public enum HeaderType {
@@ -62,7 +64,7 @@ public class Header implements Constants, Cloneable, Externalizable {
     /**
      * Stream id
      */
-    private Number streamId = 0.0d;
+    private Number streamId = ZERO;
 
     /**
      * Using extended timestamps

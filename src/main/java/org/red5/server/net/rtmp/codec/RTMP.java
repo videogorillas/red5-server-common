@@ -120,11 +120,10 @@ public class RTMP {
      * @return channel info
      */
     private ChannelInfo getChannelInfo(int channelId) {
-        ChannelInfo info = channels.putIfAbsent(channelId, new ChannelInfo());
-        if (info == null) {
-            info = channels.get(channelId);
+        if (!channels.containsKey(channelId)) {
+            channels.putIfAbsent(channelId, new ChannelInfo());
         }
-        return info;
+        return channels.get(channelId);
     }
 
     /**
@@ -447,7 +446,7 @@ public class RTMP {
     /**
      * Channel details
      */
-    private final class ChannelInfo {
+    final class ChannelInfo {
 
         // read header
         private Header readHeader;
